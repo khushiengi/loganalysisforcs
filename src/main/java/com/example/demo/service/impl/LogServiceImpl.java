@@ -32,41 +32,32 @@ public class LogServiceImpl implements LogService {
 			throw new Exception("Please provide file location");
 		}
 
-		// Map to store log id with the Log object for that Log
 		Map<String, LogDetails> eventsMap = new ConcurrentHashMap<String, LogDetails>();
 
-		// Set to store event objects that have been created from Log objects
 		Set<EventDetails> eventSet = new HashSet<EventDetails>();
 
-		// Try with resource block
 		try (Scanner myReader = new Scanner(new File(fileLocation))) {
 
-			// Object mapper to map json properties with the class variables
 			ObjectMapper logObjectMapper = new ObjectMapper();
 
 			while (myReader.hasNextLine()) {
 				String jsonData = myReader.nextLine();
-				// Map JSON values with Log class to create Log object
+
 				LogDetails currentLog = logObjectMapper.readValue(jsonData, LogDetails.class);
 
-				// Check if the Log id is found in Map, if found, go to else block, else add the
-				// object to map
 				if (!eventsMap.containsKey(currentLog.getId())) {
 					eventsMap.put(currentLog.getId(), currentLog);
 				} else {
 					LogDetails previousLog = eventsMap.get(currentLog.getId());
 
-					// Calculate the absolute value of duration
 					long duration = Math.abs(currentLog.getTimestamp() - previousLog.getTimestamp());
 
-					// Create object of event using Log object and duration
 					EventDetails event = new EventDetails(currentLog, duration);
 					eventSet.add(event);
 
-					// Remove the
 					eventsMap.remove(currentLog.getId());
 				}
-			} // Exception Handling
+			} 
 		} catch (FileNotFoundException e) {
 			throw e;
 		} catch (JsonParseException e) {

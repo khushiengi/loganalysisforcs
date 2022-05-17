@@ -21,25 +21,32 @@ public class DemoLogApplication implements CommandLineRunner {
 	public LogService logService;
 
 	public static void main(String[] args) {
-		SpringApplication app = new SpringApplication(DemoLogApplication.class);
-        app.run(args);
+		try {
+			SpringApplication app = new SpringApplication(DemoLogApplication.class);
+
+			if (args != null && args.length > 0) {
+				app.run(args);
+			} else {
+				throw new Exception("Please enter the path for logfile.txt");
+			}
+
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
 	}
 
 	@Override
 	public void run(String... args) throws Exception {
 		
 		try {
-			// Reading from file to get logs and convert those logs to events
-			logger.info("Reading from file and processing to create events");
+			logger.info("Fetching logs from file and processing them");
 			Set<EventDetails> eventSet = logService.readFromFileAndprocessLogEvents(args[0]);
 
-			// Saving the created events in database
 			logger.info("Saving events to HSQLDB");
 			logService.saveAllEventsInDB(eventSet);
 
-			// Reading the saved events from database
 			logger.info("Getting saved events from HSQLDB");
-			logService.getAllEventsFromDB().stream().forEach(x -> logger.info(x));
+			logService.getAllEventsFromDB().stream().forEach(x -> logger.debug(x));
 
 		} catch (Exception e) {
 			logger.error("Exception occured in run: " + e);
